@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: "Pretendard Variable", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-serif: "Cormorant Garamond", "Pretendard Variable", Georgia, serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  html,
+  body {
+    font-family: var(--font-sans);
+    background-color: #F7F7F5;
+    color: #111111;
+    overflow-x: hidden;
+  }
+}
+
+.font-card-sans {
+  font-family: var(--font-sans);
+}
+
+.font-card-serif {
+  font-family: var(--font-serif);
+}
+
+.font-card-mono {
+  font-family: var(--font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce-instant {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

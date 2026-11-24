@@ -1,0 +1,8 @@
+{
+  "name": "MyPR",
+  "description": "MyPR — Presentation Represented by Myself. A personal PR card collection platform to design, collect, and share your identity.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
