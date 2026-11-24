@@ -10,7 +10,11 @@ import type { PRCardData, PRCardDraft } from './types/card';
 import { cardRepository } from './utils/cardStorage';
 import { normalizeExternalUrl, reorderCards } from './utils/deckMath';
 
-export default function App() {
+interface AppProps {
+  onSignOut?: () => void;
+}
+
+export default function App({ onSignOut }: AppProps) {
   const [cards, setCards] = useState<PRCardData[]>(() => cardRepository.load().cards);
   const [activeIndex, setActiveIndex] = useState<number>(
     () => cardRepository.load().activeIndex
@@ -141,6 +145,7 @@ export default function App() {
       {/* Minimal Header */}
       <Header
         onOpenManage={() => setIsManageOpen(true)}
+        onSignOut={onSignOut}
         onResetScroll={() => {
           if (cards.length > 0) {
             setActiveIndex(Math.min(INITIAL_ACTIVE_CARD_INDEX, cards.length - 1));

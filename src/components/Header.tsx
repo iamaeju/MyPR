@@ -1,13 +1,14 @@
 import React from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { LogOut, SlidersHorizontal } from 'lucide-react';
 import { MyPRLogo } from './MyPRLogo';
 
 interface HeaderProps {
   onOpenManage: () => void;
   onResetScroll?: () => void;
+  onSignOut?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenManage, onResetScroll }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenManage, onResetScroll, onSignOut }) => {
   return (
     <header className="w-full max-w-5xl mx-auto px-5 sm:px-8 pt-5 pb-3 flex items-center justify-between gap-4">
       <button
@@ -22,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenManage, onResetScroll }) =
         </span>
       </button>
 
+      <div className="flex items-center gap-2 shrink-0">
       <button
         type="button"
         onClick={onOpenManage}
@@ -31,6 +33,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenManage, onResetScroll }) =
         <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
         <span>Manage Cards</span>
       </button>
+      {onSignOut && (
+        <button
+          type="button"
+          onClick={onSignOut}
+          aria-label="로그아웃"
+          title="로그아웃"
+          className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-white border border-[#E8E8E8] text-[#555555] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:bg-[#111111] hover:text-white hover:border-[#111111] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" aria-hidden="true" />
+        </button>
+      )}
+      </div>
     </header>
   );
 };
