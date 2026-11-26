@@ -16,12 +16,22 @@ export interface CardRepository {
   reset(): DeckStateSnapshot;
 }
 
-const STORAGE_KEY = 'mypr.deck.v1';
+const LEGACY_STORAGE_KEY = 'mypr.deck.v1';
 
 export class LocalStorageCardRepository implements CardRepository {
+  private readonly storageKey: string;
+
+  /** Pass a user id to keep each account's deck separate on a shared device. */
+  constructor(userId?: string) {
+    this.storageKey = userId ? `${LEGACY_STORAGE_KEY}.${userId}` : LEGACY_STORAGE_KEY;
+  }
+
   load(): DeckStateSnapshot {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw =
+        window.localStorage.getItem(this.storageKey) ??
+        // Carry over a deck saved before decks were stored per account
+        window.localStorage.getItem(LEGACY_STORAGE_KEY);
       if (!raw) {
         return {
           cards: DEFAULT_CARDS,
@@ -55,7 +65,7 @@ export class LocalStorageCardRepository implements CardRepository {
 
   save(snapshot: DeckStateSnapshot): void {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      window.localStorage.setItem(this.storageKey, JSON.stringify(snapshot));
     } catch {
       // Ignore quota errors gracefully
     }

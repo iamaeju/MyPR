@@ -105,9 +105,7 @@ export function AuthScreen() {
       <div className="w-full max-w-[400px]">
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-2.5">
-            <span className="rounded-xl bg-white p-1.5">
-              <MyPRLogo className="h-7 w-auto" />
-            </span>
+            <MyPRLogo className="h-9 w-auto text-white" />
             <span className="text-[24px] font-bold tracking-[-0.03em]">MyPR</span>
           </div>
           <h1 className="mt-6 text-[26px] font-bold tracking-[-0.03em]">
