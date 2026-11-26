@@ -1,16 +1,19 @@
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
 import { AuthGate } from './components/AuthGate';
+import { OwnerRoot } from './OwnerRoot';
+import { PublicRoot } from './PublicRoot';
+import { handleFromPath } from './utils/handle';
 import './index.css';
 
+// <site>/<handle> is someone's public page; everything else is the owner's editor.
+const handle = handleFromPath(window.location.pathname);
+
 createRoot(document.getElementById('root')!).render(
-  <AuthGate>
-    {(session, signOut) => {
-      const user = session.user;
-      const metaName = user.user_metadata?.username;
-      const defaultName =
-        (typeof metaName === 'string' && metaName.trim()) || user.email?.split('@')[0] || 'MyPR';
-      return <App key={user.id} userId={user.id} defaultName={defaultName} onSignOut={signOut} />;
-    }}
-  </AuthGate>
+  handle ? (
+    <PublicRoot handle={handle} />
+  ) : (
+    <AuthGate>
+      {(session, signOut) => <OwnerRoot key={session.user.id} session={session} onSignOut={signOut} />}
+    </AuthGate>
+  )
 );

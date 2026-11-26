@@ -2,13 +2,14 @@ import type { UserProfile } from '../types/profile';
 
 const keyFor = (userId: string) => `mypr.profile.v1.${userId}`;
 
-export function loadProfile(userId: string, fallbackName: string): UserProfile {
-  const fallback: UserProfile = { name: fallbackName, bio: '', links: [] };
+export function loadProfile(userId: string, fallbackName: string, fallbackHandle: string): UserProfile {
+  const fallback: UserProfile = { handle: fallbackHandle, name: fallbackName, bio: '', links: [] };
   try {
     const raw = window.localStorage.getItem(keyFor(userId));
     if (!raw) return fallback;
     const parsed = JSON.parse(raw) as Partial<UserProfile>;
     return {
+      handle: typeof parsed.handle === 'string' && parsed.handle ? parsed.handle : fallbackHandle,
       name: typeof parsed.name === 'string' && parsed.name.trim() ? parsed.name : fallbackName,
       bio: typeof parsed.bio === 'string' ? parsed.bio : '',
       avatarUrl: typeof parsed.avatarUrl === 'string' ? parsed.avatarUrl : undefined,
