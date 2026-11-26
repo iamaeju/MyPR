@@ -1,15 +1,21 @@
 import { createRoot } from 'react-dom/client';
+import { BrandSite } from './brand/BrandSite';
 import { AuthGate } from './components/AuthGate';
 import { OwnerRoot } from './OwnerRoot';
 import { PublicRoot } from './PublicRoot';
 import { handleFromPath } from './utils/handle';
 import './index.css';
 
-// <site>/<handle> is someone's public page; everything else is the owner's editor.
-const handle = handleFromPath(window.location.pathname);
+// /about (or /brand-story) is the brand page, <site>/<handle> is someone's public page,
+// and everything else is the owner's editor (logged-out visitors see the brand page there too).
+const path = window.location.pathname.replace(/\/+$/, '') || '/';
+const isBrandPage = path === '/about' || path === '/brand-story';
+const handle = isBrandPage ? null : handleFromPath(path);
 
 createRoot(document.getElementById('root')!).render(
-  handle ? (
+  isBrandPage ? (
+    <BrandSite />
+  ) : handle ? (
     <PublicRoot handle={handle} />
   ) : (
     <AuthGate>
