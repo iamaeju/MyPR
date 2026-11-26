@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion';
-import { LogOut, MoreHorizontal, Plus, SlidersHorizontal, UserRound } from 'lucide-react';
+import { LogOut, MoreHorizontal, Pencil, Plus, Share2, SlidersHorizontal, UserRound } from 'lucide-react';
 import { Avatar } from './components/Avatar';
 import { CardDeck } from './components/CardDeck';
 import { CardFormModal } from './components/CardFormModal';
@@ -9,19 +9,35 @@ import { CreateCardPopup } from './components/CreateCardPopup';
 import { MyPRLogo } from './components/MyPRLogo';
 import { NotificationToast, type ToastMessage } from './components/NotificationToast';
 import { ProfileEditModal } from './components/ProfileEditModal';
+import { ShareModal } from './components/ShareModal';
 import { SocialIcon } from './components/SocialIcon';
 import type { PRCardData, PRCardDraft } from './types/card';
-import type { UserProfile } from './types/profile';
+import { INITIAL_ACTIVE_CARD_INDEX } from './data/defaultCards';
+import { isHandleFree, PageApiError, savePage } from './lib/pageApi';
+import type { PageData, UserProfile } from './types/profile';
 import { LocalStorageCardRepository } from './utils/cardStorage';
 import { normalizeExternalUrl, reorderCards } from './utils/deckMath';
 import { detectPlatform, PLATFORM_META } from './utils/linkPlatform';
-import { loadProfile, saveProfile } from './utils/profileStorage';
+import { validateHandle } from './utils/handle';
+import { saveProfile } from './utils/profileStorage';
 
-interface AppProps {
-  userId: string;
-  defaultName: string;
+interface OwnerProps {
+  mode: 'owner';
+  initialPage: PageData;
+  /** False when the server is unreachable: changes stay on this device. */
+  syncEnabled: boolean;
+  syncNotice?: string | null;
   onSignOut?: () => void;
 }
+
+interface VisitorProps {
+  mode: 'visitor';
+  page: PageData;
+  /** The signed-in person is looking at their own page. */
+  isOwnPage: boolean;
+}
+
+type AppProps = OwnerProps | VisitorProps;
 
 /** Height of the top bar; also where the card sheet stops when fully open. */
 const TOP_BAR_H = 64;
@@ -32,11 +48,28 @@ const SPRING = { type: 'spring' as const, stiffness: 420, damping: 42, mass: 0.9
 
 const newCardId = () => `card-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
-export default function App({ userId, defaultName, onSignOut }: AppProps) {
-  const repository = useMemo(() => new LocalStorageCardRepository(userId), [userId]);
-  const [cards, setCards] = useState<PRCardData[]>(() => repository.load().cards);
-  const [activeIndex, setActiveIndex] = useState<number>(() => repository.load().activeIndex);
-  const [profile, setProfile] = useState<UserProfile>(() => loadProfile(userId, defaultName));
+const SYNC_DELAY_MS = 900;
+
+export default function App(props: AppProps) {
+  const isOwner = props.mode === 'owner';
+  const initialPage = props.mode === 'owner' ? props.initialPage : props.page;
+  const userId = initialPage.userId;
+  const onSignOut = props.mode === 'owner' ? props.onSignOut : undefined;
+  const syncEnabled = props.mode === 'owner' && props.syncEnabled;
+
+  // Only the owner keeps a local copy (and remembers which card was in front)
+  const repository = useMemo(
+    () => (isOwner ? new LocalStorageCardRepository(userId) : null),
+    [isOwner, userId]
+  );
+  const [cards, setCards] = useState<PRCardData[]>(initialPage.cards);
+  const [activeIndex, setActiveIndex] = useState<number>(() => {
+    const last = Math.max(0, initialPage.cards.length - 1);
+    const saved = repository?.load().activeIndex ?? INITIAL_ACTIVE_CARD_INDEX;
+    return Math.min(Math.max(0, saved), last);
+  });
+  const [profile, setProfile] = useState<UserProfile>(initialPage.profile);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,8 +92,59 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
   }, []);
 
   useEffect(() => {
-    repository.save({ cards, activeIndex });
+    repository?.save({ cards, activeIndex });
   }, [repository, cards, activeIndex]);
+
+  useEffect(() => {
+    if (props.mode === 'owner' && props.syncNotice) showToast(props.syncNotice, 'info');
+    // Show once on load
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Publish the owner's page to the server shortly after each change
+  const isFirstSync = useRef(true);
+  const syncErrorShown = useRef(false);
+  useEffect(() => {
+    if (!syncEnabled) return;
+    if (isFirstSync.current) {
+      isFirstSync.current = false;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      savePage({ userId, profile, cards })
+        .then(() => {
+          syncErrorShown.current = false;
+        })
+        .catch((err) => {
+          if (syncErrorShown.current) return;
+          syncErrorShown.current = true;
+          const taken = err instanceof PageApiError && err.kind === 'handle_taken';
+          showToast(
+            taken
+              ? '이미 사용 중인 주소예요. 프로필 편집에서 주소를 바꿔주세요.'
+              : '서버에 저장하지 못했어요. 이 기기에는 저장돼 있어요.',
+            'info'
+          );
+        });
+    }, SYNC_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [syncEnabled, userId, profile, cards, showToast]);
+
+  const checkHandle = useCallback(
+    async (handle: string): Promise<string | null> => {
+      const invalid = validateHandle(handle);
+      if (invalid) return invalid;
+      if (!syncEnabled) return null;
+      try {
+        return (await isHandleFree(handle, userId))
+          ? null
+          : '이미 다른 사람이 쓰고 있는 주소예요. 다른 주소를 골라주세요.';
+      } catch {
+        return '주소를 확인하지 못했어요. 잠시 후 다시 시도해주세요.';
+      }
+    },
+    [syncEnabled, userId]
+  );
 
   // ---------------------------------------------------------------------------
   // Sheet geometry: y = 0 is fully open (#02), y = maxY is the resting state (#01)
@@ -289,7 +373,7 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
   };
 
   const anyModalOpen =
-    isProfileEditOpen || isCreateOpen || isManageOpen || formState.isOpen || isMenuOpen;
+    isProfileEditOpen || isCreateOpen || isManageOpen || formState.isOpen || isMenuOpen || isShareOpen;
 
   return (
     <div className="h-[100dvh] w-full bg-[#F7F7F5] text-[#111111] overflow-hidden">
@@ -302,23 +386,41 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
           <button
             type="button"
             onClick={() => snapTo(false)}
-            aria-label="MyPR 처음 화면으로"
+            aria-label="프로필 화면으로"
             className="h-11 -ml-1 px-1 rounded-xl flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] cursor-pointer"
           >
             <MyPRLogo className="h-8 w-auto text-[#111111]" />
           </button>
-          <motion.button
-            type="button"
-            onClick={() => setIsMenuOpen((v) => !v)}
-            aria-label="메뉴"
-            aria-expanded={isMenuOpen}
-            style={{ opacity: fadeOut }}
-            className={`w-11 h-11 -mr-1.5 rounded-full flex items-center justify-center text-[#111111] hover:bg-black/5 cursor-pointer ${
-              isExpanded ? 'pointer-events-none' : ''
-            }`}
-          >
-            <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
-          </motion.button>
+          {isOwner ? (
+            <motion.button
+              type="button"
+              onClick={() => setIsMenuOpen((v) => !v)}
+              aria-label="메뉴"
+              aria-expanded={isMenuOpen}
+              style={{ opacity: fadeOut }}
+              className={`w-11 h-11 -mr-1.5 rounded-full flex items-center justify-center text-[#111111] hover:bg-black/5 cursor-pointer ${
+                isExpanded ? 'pointer-events-none' : ''
+              }`}
+            >
+              <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
+            </motion.button>
+          ) : (
+            <motion.a
+              href="/"
+              style={{ opacity: fadeOut }}
+              className={`h-10 px-4 rounded-full bg-[#111111] text-white text-[13px] font-semibold inline-flex items-center gap-1.5 ${
+                isExpanded ? 'pointer-events-none' : ''
+              }`}
+            >
+              {props.mode === 'visitor' && props.isOwnPage ? (
+                <>
+                  <Pencil className="w-3.5 h-3.5" aria-hidden="true" />내 페이지 편집
+                </>
+              ) : (
+                '나도 MyPR 만들기'
+              )}
+            </motion.a>
+          )}
         </header>
 
         {/* #01 profile */}
@@ -360,13 +462,23 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
                 );
               })}
             </ul>
-          ) : (
+          ) : isOwner ? (
             <button
               type="button"
               onClick={() => !suppressClickRef.current && setIsProfileEditOpen(true)}
               className="mt-3 h-10 px-4 rounded-full border border-[#DDDDD8] bg-white text-[13px] font-medium text-[#555555] hover:text-[#111111] cursor-pointer"
             >
               + 소셜 링크 추가
+            </button>
+          ) : null}
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => !suppressClickRef.current && setIsShareOpen(true)}
+              className="mt-2.5 h-9 px-3.5 rounded-full bg-[#111111] text-white text-[12px] font-semibold inline-flex items-center gap-1.5 hover:bg-[#2A2A2A] cursor-pointer"
+            >
+              <Share2 className="w-3.5 h-3.5" aria-hidden="true" />
+              내 페이지 공유
             </button>
           )}
         </motion.section>
@@ -376,10 +488,11 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
           type="button"
           onClick={() => {
             if (suppressClickRef.current) return;
-            if (isExpanded) setIsMenuOpen((v) => !v);
+            if (!isOwner) snapTo(false);
+            else if (isExpanded) setIsMenuOpen((v) => !v);
             else setIsProfileEditOpen(true);
           }}
-          aria-label={isExpanded ? '메뉴' : '프로필 편집'}
+          aria-label={!isOwner ? `${profile.name} 프로필` : isExpanded ? '메뉴' : '프로필 편집'}
           style={{ x: avatarX, y: avatarY, scale: avatarScale, width: AVATAR_BIG, height: AVATAR_BIG }}
           className="absolute left-0 top-0 z-40 origin-center rounded-full focus:outline-none focus-visible:ring-4 focus-visible:ring-[#111111]/30 cursor-pointer"
         >
@@ -424,7 +537,7 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
                 activeIndex={activeIndex}
                 onChangeActiveIndex={setActiveIndex}
                 onCardClick={handleCardClick}
-                onOpenAddCard={() => setIsCreateOpen(true)}
+                onOpenAddCard={isOwner ? () => setIsCreateOpen(true) : undefined}
                 keyboardDisabled={!isExpanded || anyModalOpen}
               />
             </div>
@@ -442,6 +555,7 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
           </div>
 
           {/* #02 create button → #03 popup */}
+          {isOwner && (
           <motion.div
             style={{ opacity: fadeIn }}
             className={`absolute inset-x-0 bottom-0 z-20 flex justify-center pb-[max(16px,env(safe-area-inset-bottom))] pointer-events-none ${
@@ -458,6 +572,7 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
               <Plus className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
             </button>
           </motion.div>
+          )}
         </motion.section>
 
         {/* Menu */}
@@ -470,6 +585,7 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
               style={{ top: TOP_BAR_H - 4 }}
             >
               {[
+                { label: '내 페이지 공유', icon: Share2, action: () => setIsShareOpen(true) },
                 { label: '프로필 편집', icon: UserRound, action: () => setIsProfileEditOpen(true) },
                 { label: '카드 관리', icon: SlidersHorizontal, action: () => setIsManageOpen(true) },
                 ...(onSignOut ? [{ label: '로그아웃', icon: LogOut, action: onSignOut }] : []),
@@ -492,6 +608,20 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
           </div>
         )}
       </div>
+
+      {isOwner && (
+        <>
+      <ShareModal
+        isOpen={isShareOpen}
+        handle={profile.handle}
+        name={profile.name}
+        isPublic={syncEnabled}
+        onClose={() => setIsShareOpen(false)}
+        onEditAddress={() => {
+          setIsShareOpen(false);
+          setIsProfileEditOpen(true);
+        }}
+      />
 
       <CreateCardPopup
         isOpen={isCreateOpen}
@@ -516,6 +646,7 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
         profile={profile}
         onClose={() => setIsProfileEditOpen(false)}
         onSave={handleSaveProfile}
+        checkHandle={checkHandle}
       />
 
       <CardManagement
@@ -538,6 +669,8 @@ export default function App({ userId, defaultName, onSignOut }: AppProps) {
         onClose={() => setFormState((prev) => ({ ...prev, isOpen: false }))}
         onSave={handleSaveCard}
       />
+        </>
+      )}
 
       <NotificationToast toast={toast} />
     </div>

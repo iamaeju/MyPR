@@ -26,6 +26,18 @@ export class LocalStorageCardRepository implements CardRepository {
     this.storageKey = userId ? `${LEGACY_STORAGE_KEY}.${userId}` : LEGACY_STORAGE_KEY;
   }
 
+  /** True when this device already has a deck saved (for this account or from before accounts). */
+  hasSavedDeck(): boolean {
+    try {
+      return (
+        window.localStorage.getItem(this.storageKey) !== null ||
+        window.localStorage.getItem(LEGACY_STORAGE_KEY) !== null
+      );
+    } catch {
+      return false;
+    }
+  }
+
   load(): DeckStateSnapshot {
     try {
       const raw =

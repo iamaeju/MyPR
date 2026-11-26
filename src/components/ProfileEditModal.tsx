@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Camera, Plus, Trash2, X } from 'lucide-react';
+import { Camera, Loader2, Plus, Trash2, X } from 'lucide-react';
 import type { ProfileLink, UserProfile } from '../types/profile';
+import { normalizeHandle, validateHandle } from '../utils/handle';
 import { processUploadedImage } from '../utils/imageHelper';
 import { detectPlatform, PLATFORM_META, toSafeLink } from '../utils/linkPlatform';
 import { Avatar } from './Avatar';
@@ -11,6 +12,8 @@ interface ProfileEditModalProps {
   profile: UserProfile;
   onClose: () => void;
   onSave: (profile: UserProfile) => void;
+  /** Resolves to an error message when the address is taken, or null. */
+  checkHandle: (handle: string) => Promise<string | null>;
 }
 
 const MAX_LINKS = 6;
@@ -22,7 +25,10 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   profile,
   onClose,
   onSave,
+  checkHandle,
 }) => {
+  const [handle, setHandle] = useState(profile.handle);
+  const [isSaving, setIsSaving] = useState(false);
   const [name, setName] = useState(profile.name);
   const [bio, setBio] = useState(profile.bio);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
@@ -31,6 +37,8 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    setHandle(profile.handle);
+    setIsSaving(false);
     setName(profile.name);
     setBio(profile.bio);
     setAvatarUrl(profile.avatarUrl);
@@ -63,8 +71,15 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const updateLink = (id: string, url: string) =>
     setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, url } : l)));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
+    const cleanHandle = normalizeHandle(handle);
+    const handleError = validateHandle(cleanHandle);
+    if (handleError) {
+      setError(handleError);
+      return;
+    }
     const cleanName = name.trim();
     if (!cleanName) {
       setError('이름을 입력해주세요.');
@@ -80,7 +95,16 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       }
       cleanedLinks.push({ id: link.id, url: safe });
     }
-    onSave({ name: cleanName, bio: bio.trim(), avatarUrl, links: cleanedLinks });
+    if (cleanHandle !== profile.handle) {
+      setIsSaving(true);
+      const takenError = await checkHandle(cleanHandle);
+      setIsSaving(false);
+      if (takenError) {
+        setError(takenError);
+        return;
+      }
+    }
+    onSave({ handle: cleanHandle, name: cleanName, bio: bio.trim(), avatarUrl, links: cleanedLinks });
   };
 
   const inputClass =
@@ -147,6 +171,28 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               className={inputClass}
             />
+          </div>
+
+          <div>
+            <label htmlFor="profile-handle" className="block text-[13px] font-semibold text-[#555555] mb-1.5">
+              내 페이지 주소
+            </label>
+            <div className="flex items-center h-12 rounded-xl border border-[#E3E3E0] bg-white focus-within:border-[#111111] transition-colors overflow-hidden">
+              <span className="pl-3.5 pr-0.5 text-[15px] text-[#999999] whitespace-nowrap">
+                {window.location.host}/
+              </span>
+              <input
+                id="profile-handle"
+                value={handle}
+                maxLength={20}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                className="flex-1 min-w-0 h-full pr-3.5 bg-transparent text-[16px] text-[#111111] focus:outline-none"
+              />
+            </div>
+            <p className="mt-1.5 text-[12px] text-[#999999]">영어 소문자, 숫자, 밑줄(_) 3~20자</p>
           </div>
 
           <div>
@@ -224,8 +270,10 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         <div className="px-5 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] border-t border-[#E8E8E4] bg-[#F7F7F5]">
           <button
             type="submit"
-            className="w-full h-[52px] rounded-2xl bg-[#111111] text-white text-[16px] font-bold hover:bg-[#2A2A2A] transition-colors cursor-pointer"
+            disabled={isSaving}
+            className="w-full h-[52px] rounded-2xl bg-[#111111] text-white text-[16px] font-bold inline-flex items-center justify-center gap-2 hover:bg-[#2A2A2A] disabled:opacity-60 transition-colors cursor-pointer"
           >
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
             저장
           </button>
         </div>

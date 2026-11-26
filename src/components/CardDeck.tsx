@@ -16,7 +16,8 @@ interface CardDeckProps {
   activeIndex: number;
   onChangeActiveIndex: (index: number) => void;
   onCardClick: (card: PRCardData) => void;
-  onOpenAddCard: () => void;
+  /** Omit for read-only decks (visitors). */
+  onOpenAddCard?: () => void;
   keyboardDisabled?: boolean;
 }
 
@@ -224,6 +225,7 @@ export const CardDeck: React.FC<CardDeckProps> = ({
           <p className="text-[13px] text-[#888888] mt-1.5 max-w-[260px]">
             나를 표현하는 첫 번째 PR 카드를 만들어 컬렉션을 시작해보세요.
           </p>
+          {onOpenAddCard && (
           <button
             type="button"
             onClick={onOpenAddCard}
@@ -232,6 +234,7 @@ export const CardDeck: React.FC<CardDeckProps> = ({
             <Plus className="w-4 h-4" aria-hidden="true" />
             <span>Create First Card</span>
           </button>
+          )}
         </div>
       </div>
     );
