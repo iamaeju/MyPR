@@ -71,7 +71,7 @@ export const CreateCardPopup: React.FC<CreateCardPopupProps> = ({
         aria-labelledby="create-card-heading"
         onSubmit={handleSubmit}
         noValidate
-        className="relative w-full max-w-[400px] rounded-[28px] bg-[#F7F7F5] p-6 pt-8 shadow-[0_30px_80px_rgba(0,0,0,0.3)] animate-[popIn_220ms_cubic-bezier(0.22,1,0.36,1)]"
+        className="relative w-full max-w-[400px] rounded-[28px] bg-white p-6 pt-8 shadow-[0_30px_80px_rgba(0,0,0,0.3)] animate-[popIn_220ms_cubic-bezier(0.22,1,0.36,1)]"
       >
         <button
           type="button"

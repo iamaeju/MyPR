@@ -376,7 +376,7 @@ export default function App(props: AppProps) {
     isProfileEditOpen || isCreateOpen || isManageOpen || formState.isOpen || isMenuOpen || isShareOpen;
 
   return (
-    <div className="h-[100dvh] w-full bg-[#F7F7F5] text-[#111111] overflow-hidden">
+    <div className="h-[100dvh] w-full bg-white text-[#111111] overflow-hidden">
       <div ref={shellRef} className="relative mx-auto h-full w-full max-w-[560px] overflow-hidden">
         {/* Top bar: logo left, menu right (the avatar takes this spot when the sheet is open) */}
         <header
@@ -503,7 +503,7 @@ export default function App(props: AppProps) {
         <motion.section
           aria-label="내 MyPR 카드"
           style={{ y: sheetY, top: TOP_BAR_H }}
-          className="absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-[32px] bg-[#EBEBE7] shadow-[0_-10px_40px_rgba(17,17,17,0.08)]"
+          className="absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-[32px] bg-white border-t border-[#EEEEEE] shadow-[0_-6px_24px_rgba(17,17,17,0.06)]"
         >
           <div
             {...swipeHandlers(false)}
@@ -598,7 +598,7 @@ export default function App(props: AppProps) {
                     setIsMenuOpen(false);
                     action();
                   }}
-                  className="w-full h-11 px-3 rounded-xl flex items-center gap-2.5 text-[14px] font-medium text-[#111111] hover:bg-[#F2F2EF] cursor-pointer"
+                  className="w-full h-11 px-3 rounded-xl flex items-center gap-2.5 text-[14px] font-medium text-[#111111] hover:bg-[#F5F5F5] cursor-pointer"
                 >
                   <Icon className="w-4 h-4 text-[#777777]" aria-hidden="true" />
                   {label}

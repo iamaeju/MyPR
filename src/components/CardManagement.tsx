@@ -97,7 +97,7 @@ export const CardManagement: React.FC<CardManagementProps> = ({
 
         {/* Live Selected Card Preview */}
         {previewCard && (
-          <div className="px-5 sm:px-6 py-4 bg-[#F7F7F5] border-b border-[#E8E8E8]">
+          <div className="px-5 sm:px-6 py-4 bg-white border-b border-[#E8E8E8]">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[#888888]">
                 Active Card Preview

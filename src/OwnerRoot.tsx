@@ -83,7 +83,7 @@ export function OwnerRoot({ session, onSignOut }: OwnerRootProps) {
 
   if (state.status === 'loading') {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-[#F7F7F5]">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-white">
         <Loader2 className="w-6 h-6 text-[#999999] animate-spin" aria-label="불러오는 중" />
       </div>
     );
