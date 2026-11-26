@@ -2,15 +2,26 @@ import React from 'react';
 
 interface MyPRLogoProps {
   className?: string;
+  title?: string;
 }
 
-export const MyPRLogo: React.FC<MyPRLogoProps> = ({ className = 'h-7 w-auto' }) => {
+/**
+ * MyPR mark: four stacked cards, drawn as SVG so it stays sharp at any size.
+ * Uses currentColor, so the logo follows the surrounding text color.
+ */
+export const MyPRLogo: React.FC<MyPRLogoProps> = ({ className = 'h-7 w-auto', title = 'MyPR' }) => {
   return (
-    <img
-      src="/assets/mypr-logo.png"
-      alt="MyPR Logo"
-      className={`${className} block select-none object-contain`}
-      draggable={false}
-    />
+    <svg
+      viewBox="0 0 626 891"
+      className={`${className} block shrink-0`}
+      role="img"
+      aria-label={title}
+      fill="currentColor"
+    >
+      <rect x="80" y="0" width="459" height="891" rx="20" opacity="0.4" />
+      <rect x="61" y="71" width="497" height="750" rx="20" opacity="0.6" />
+      <rect x="33" y="156" width="553" height="580" rx="20" opacity="0.7" />
+      <rect x="0" y="240" width="626" height="412" rx="20" />
+    </svg>
   );
 };

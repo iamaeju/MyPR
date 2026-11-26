@@ -13,6 +13,7 @@
     background-color: #F7F7F5;
     color: #111111;
     overflow-x: hidden;
+    overscroll-behavior: none;
   }
 }
 
@@ -32,5 +33,16 @@
   .motion-reduce-instant {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
