@@ -65,7 +65,8 @@ export default function App(props: AppProps) {
   const [cards, setCards] = useState<PRCardData[]>(initialPage.cards);
   const [activeIndex, setActiveIndex] = useState<number>(() => {
     const last = Math.max(0, initialPage.cards.length - 1);
-    const saved = repository?.load().activeIndex ?? INITIAL_ACTIVE_CARD_INDEX;
+    // Visitors start at the first card and scroll down through the rest
+    const saved = repository ? repository.load().activeIndex : isOwner ? INITIAL_ACTIVE_CARD_INDEX : 0;
     return Math.min(Math.max(0, saved), last);
   });
   const [profile, setProfile] = useState<UserProfile>(initialPage.profile);
@@ -372,6 +373,10 @@ export default function App(props: AppProps) {
     }
   };
 
+  // Visitors see the sign-up invite only after scrolling to the very end:
+  // cards opened full screen and the last card in front (or no cards at all)
+  const showSignupCta = isExpanded && (cards.length === 0 || activeIndex >= cards.length - 1);
+
   const anyModalOpen =
     isProfileEditOpen || isCreateOpen || isManageOpen || formState.isOpen || isMenuOpen || isShareOpen;
 
@@ -569,15 +574,23 @@ export default function App(props: AppProps) {
           )}
         </motion.section>
 
-        {/* Visitors: invite them to make their own page */}
+        {/* Visitors: once they open the cards and reach the last one, invite them to make their own */}
         {props.mode === 'visitor' && !props.isOwnPage && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[45] flex justify-center px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-10 bg-gradient-to-t from-white via-white/85 to-transparent">
+          <div
+            aria-hidden={!showSignupCta}
+            className={`pointer-events-none absolute inset-x-0 bottom-0 z-[45] flex justify-center pb-[max(16px,env(safe-area-inset-bottom))] transition-all duration-300 ease-out ${
+              showSignupCta ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
             <a
               href="/?mode=signup"
-              className="pointer-events-auto w-full max-w-[360px] h-14 rounded-2xl bg-[#111111] text-white flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(17,17,17,0.25)] hover:bg-[#2A2A2A] active:scale-[0.99] transition"
+              tabIndex={showSignupCta ? 0 : -1}
+              className={`h-10 px-4 rounded-full bg-[#111111] text-white inline-flex items-center gap-2 shadow-[0_6px_18px_rgba(17,17,17,0.22)] hover:bg-[#2A2A2A] active:scale-[0.98] transition ${
+                showSignupCta ? 'pointer-events-auto' : ''
+              }`}
             >
-              <MyPRLogo className="h-5 w-auto text-white" title="" />
-              <span className="text-[15px] font-bold tracking-[-0.01em]">나만의 MYPR CARD 만들기</span>
+              <MyPRLogo className="h-3.5 w-auto text-white" title="" />
+              <span className="text-[13px] font-semibold tracking-[-0.01em]">나만의 MYPR CARD 만들기</span>
             </a>
           </div>
         )}
