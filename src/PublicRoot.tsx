@@ -79,10 +79,10 @@ export function PublicRoot({ handle }: { handle: string }) {
         </p>
       )}
       <a
-        href="/"
+        href="/?mode=signup"
         className="mt-6 h-12 px-6 rounded-2xl bg-[#111111] text-white text-[15px] font-bold inline-flex items-center"
       >
-        나도 MyPR 만들기
+        나만의 MYPR CARD 만들기
       </a>
     </div>
   );

@@ -14,8 +14,7 @@ export const MyPRLogo: React.FC<MyPRLogoProps> = ({ className = 'h-7 w-auto', ti
     <svg
       viewBox="0 0 626 891"
       className={`${className} block shrink-0`}
-      role="img"
-      aria-label={title}
+      {...(title ? { role: 'img', 'aria-label': title } : { 'aria-hidden': true })}
       fill="currentColor"
     >
       <rect x="80" y="0" width="459" height="891" rx="20" opacity="0.4" />

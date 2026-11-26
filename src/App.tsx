@@ -404,7 +404,7 @@ export default function App(props: AppProps) {
             >
               <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
             </motion.button>
-          ) : (
+          ) : props.mode === 'visitor' && props.isOwnPage ? (
             <motion.a
               href="/"
               style={{ opacity: fadeOut }}
@@ -412,15 +412,9 @@ export default function App(props: AppProps) {
                 isExpanded ? 'pointer-events-none' : ''
               }`}
             >
-              {props.mode === 'visitor' && props.isOwnPage ? (
-                <>
-                  <Pencil className="w-3.5 h-3.5" aria-hidden="true" />내 페이지 편집
-                </>
-              ) : (
-                '나도 MyPR 만들기'
-              )}
+              <Pencil className="w-3.5 h-3.5" aria-hidden="true" />내 페이지 편집
             </motion.a>
-          )}
+          ) : null}
         </header>
 
         {/* #01 profile */}
@@ -574,6 +568,19 @@ export default function App(props: AppProps) {
           </motion.div>
           )}
         </motion.section>
+
+        {/* Visitors: invite them to make their own page */}
+        {props.mode === 'visitor' && !props.isOwnPage && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[45] flex justify-center px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-10 bg-gradient-to-t from-white via-white/85 to-transparent">
+            <a
+              href="/?mode=signup"
+              className="pointer-events-auto w-full max-w-[360px] h-14 rounded-2xl bg-[#111111] text-white flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(17,17,17,0.25)] hover:bg-[#2A2A2A] active:scale-[0.99] transition"
+            >
+              <MyPRLogo className="h-5 w-auto text-white" title="" />
+              <span className="text-[15px] font-bold tracking-[-0.01em]">나만의 MYPR CARD 만들기</span>
+            </a>
+          </div>
+        )}
 
         {/* Menu */}
         {isMenuOpen && (
