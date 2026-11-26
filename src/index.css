@@ -12,8 +12,14 @@
     font-family: var(--font-sans);
     background-color: #FFFFFF;
     color: #111111;
-    overflow-x: hidden;
-    overscroll-behavior: none;
+  }
+
+  /* Only the root may stop sideways overflow and the pull-to-refresh bounce.
+     Putting overflow-x: hidden + overscroll-behavior: none on body turned it into
+     its own (non-scrolling) scroll box that swallowed finger swipes on phones. */
+  html {
+    overflow-x: clip;
+    overscroll-behavior-y: none;
   }
 }
 
