@@ -124,7 +124,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         aria-labelledby="profile-edit-heading"
         onSubmit={handleSubmit}
         noValidate
-        className="w-full sm:max-w-[460px] max-h-[92dvh] bg-[#F7F7F5] rounded-t-[28px] sm:rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden"
+        className="w-full sm:max-w-[460px] max-h-[92dvh] bg-white rounded-t-[28px] sm:rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.2)] flex flex-col overflow-hidden"
       >
         <div className="flex items-center justify-between px-5 py-4">
           <h2 id="profile-edit-heading" className="text-[17px] font-bold tracking-[-0.02em]">
@@ -267,7 +267,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
           )}
         </div>
 
-        <div className="px-5 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] border-t border-[#E8E8E4] bg-[#F7F7F5]">
+        <div className="px-5 pt-3 pb-[max(16px,env(safe-area-inset-bottom))] border-t border-[#EEEEEE] bg-white">
           <button
             type="submit"
             disabled={isSaving}

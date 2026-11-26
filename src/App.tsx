@@ -65,7 +65,8 @@ export default function App(props: AppProps) {
   const [cards, setCards] = useState<PRCardData[]>(initialPage.cards);
   const [activeIndex, setActiveIndex] = useState<number>(() => {
     const last = Math.max(0, initialPage.cards.length - 1);
-    const saved = repository?.load().activeIndex ?? INITIAL_ACTIVE_CARD_INDEX;
+    // Visitors start at the first card and scroll down through the rest
+    const saved = repository ? repository.load().activeIndex : isOwner ? INITIAL_ACTIVE_CARD_INDEX : 0;
     return Math.min(Math.max(0, saved), last);
   });
   const [profile, setProfile] = useState<UserProfile>(initialPage.profile);
@@ -372,11 +373,15 @@ export default function App(props: AppProps) {
     }
   };
 
+  // Visitors see the sign-up invite only after scrolling to the very end:
+  // cards opened full screen and the last card in front (or no cards at all)
+  const showSignupCta = isExpanded && (cards.length === 0 || activeIndex >= cards.length - 1);
+
   const anyModalOpen =
     isProfileEditOpen || isCreateOpen || isManageOpen || formState.isOpen || isMenuOpen || isShareOpen;
 
   return (
-    <div className="h-[100dvh] w-full bg-[#F7F7F5] text-[#111111] overflow-hidden">
+    <div className="h-[100dvh] w-full bg-white text-[#111111] overflow-hidden">
       <div ref={shellRef} className="relative mx-auto h-full w-full max-w-[560px] overflow-hidden">
         {/* Top bar: logo left, menu right (the avatar takes this spot when the sheet is open) */}
         <header
@@ -404,7 +409,7 @@ export default function App(props: AppProps) {
             >
               <MoreHorizontal className="w-5 h-5" aria-hidden="true" />
             </motion.button>
-          ) : (
+          ) : props.mode === 'visitor' && props.isOwnPage ? (
             <motion.a
               href="/"
               style={{ opacity: fadeOut }}
@@ -412,15 +417,9 @@ export default function App(props: AppProps) {
                 isExpanded ? 'pointer-events-none' : ''
               }`}
             >
-              {props.mode === 'visitor' && props.isOwnPage ? (
-                <>
-                  <Pencil className="w-3.5 h-3.5" aria-hidden="true" />내 페이지 편집
-                </>
-              ) : (
-                '나도 MyPR 만들기'
-              )}
+              <Pencil className="w-3.5 h-3.5" aria-hidden="true" />내 페이지 편집
             </motion.a>
-          )}
+          ) : null}
         </header>
 
         {/* #01 profile */}
@@ -503,7 +502,7 @@ export default function App(props: AppProps) {
         <motion.section
           aria-label="내 MyPR 카드"
           style={{ y: sheetY, top: TOP_BAR_H }}
-          className="absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-[32px] bg-[#EBEBE7] shadow-[0_-10px_40px_rgba(17,17,17,0.08)]"
+          className="absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-[32px] bg-white border-t border-[#EEEEEE] shadow-[0_-6px_24px_rgba(17,17,17,0.06)]"
         >
           <div
             {...swipeHandlers(false)}
@@ -575,6 +574,27 @@ export default function App(props: AppProps) {
           )}
         </motion.section>
 
+        {/* Visitors: once they open the cards and reach the last one, invite them to make their own */}
+        {props.mode === 'visitor' && !props.isOwnPage && (
+          <div
+            aria-hidden={!showSignupCta}
+            className={`pointer-events-none absolute inset-x-0 bottom-0 z-[45] flex justify-center pb-[max(16px,env(safe-area-inset-bottom))] transition-all duration-300 ease-out ${
+              showSignupCta ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <a
+              href="/?mode=signup"
+              tabIndex={showSignupCta ? 0 : -1}
+              className={`h-10 px-4 rounded-full bg-[#111111] text-white inline-flex items-center gap-2 shadow-[0_6px_18px_rgba(17,17,17,0.22)] hover:bg-[#2A2A2A] active:scale-[0.98] transition ${
+                showSignupCta ? 'pointer-events-auto' : ''
+              }`}
+            >
+              <MyPRLogo className="h-3.5 w-auto text-white" title="" />
+              <span className="text-[13px] font-semibold tracking-[-0.01em]">나만의 MYPR CARD 만들기</span>
+            </a>
+          </div>
+        )}
+
         {/* Menu */}
         {isMenuOpen && (
           <div className="absolute inset-0 z-50" onClick={() => setIsMenuOpen(false)} role="presentation">
@@ -598,7 +618,7 @@ export default function App(props: AppProps) {
                     setIsMenuOpen(false);
                     action();
                   }}
-                  className="w-full h-11 px-3 rounded-xl flex items-center gap-2.5 text-[14px] font-medium text-[#111111] hover:bg-[#F2F2EF] cursor-pointer"
+                  className="w-full h-11 px-3 rounded-xl flex items-center gap-2.5 text-[14px] font-medium text-[#111111] hover:bg-[#F5F5F5] cursor-pointer"
                 >
                   <Icon className="w-4 h-4 text-[#777777]" aria-hidden="true" />
                   {label}

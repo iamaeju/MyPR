@@ -178,7 +178,7 @@ export const PRCard: React.FC<PRCardProps> = ({
     );
   }
 
-  const interactiveClasses = `${baseClasses} block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F7F7F5]`;
+  const interactiveClasses = `${baseClasses} block cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-white`;
 
   if (isActive && safeUrl) {
     return (

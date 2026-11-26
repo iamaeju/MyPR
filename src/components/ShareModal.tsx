@@ -72,7 +72,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="share-heading"
-        className="w-full sm:max-w-[420px] bg-[#F7F7F5] rounded-t-[28px] sm:rounded-[28px] p-5 pb-[max(20px,env(safe-area-inset-bottom))] shadow-[0_24px_60px_rgba(0,0,0,0.2)] animate-[popIn_220ms_cubic-bezier(0.22,1,0.36,1)]"
+        className="w-full sm:max-w-[420px] bg-white rounded-t-[28px] sm:rounded-[28px] p-5 pb-[max(20px,env(safe-area-inset-bottom))] shadow-[0_24px_60px_rgba(0,0,0,0.2)] animate-[popIn_220ms_cubic-bezier(0.22,1,0.36,1)]"
       >
         <div className="flex items-center justify-between">
           <h2 id="share-heading" className="text-[17px] font-bold tracking-[-0.02em]">

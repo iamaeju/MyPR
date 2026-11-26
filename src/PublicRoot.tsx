@@ -46,7 +46,7 @@ export function PublicRoot({ handle }: { handle: string }) {
 
   if (state.status === 'loading') {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-[#F7F7F5]">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-white">
         <Loader2 className="w-6 h-6 text-[#999999] animate-spin" aria-label="불러오는 중" />
       </div>
     );
@@ -57,7 +57,7 @@ export function PublicRoot({ handle }: { handle: string }) {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F7F7F5] text-[#111111] flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-[100dvh] bg-white text-[#111111] flex flex-col items-center justify-center px-6 text-center">
       <MyPRLogo className="h-12 w-auto" />
       <h1 className="mt-6 text-[22px] font-bold tracking-[-0.03em]">
         {state.status === 'missing'
@@ -79,10 +79,10 @@ export function PublicRoot({ handle }: { handle: string }) {
         </p>
       )}
       <a
-        href="/"
+        href="/?mode=signup"
         className="mt-6 h-12 px-6 rounded-2xl bg-[#111111] text-white text-[15px] font-bold inline-flex items-center"
       >
-        나도 MyPR 만들기
+        나만의 MYPR CARD 만들기
       </a>
     </div>
   );

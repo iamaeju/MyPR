@@ -9,7 +9,10 @@ type Mode = 'login' | 'signup';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function AuthScreen() {
-  const [mode, setMode] = useState<Mode>('login');
+  // Links like /?mode=signup (from someone's shared page) open the sign-up form
+  const [mode, setMode] = useState<Mode>(() =>
+    new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'signup' : 'login'
+  );
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
