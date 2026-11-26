@@ -3,7 +3,7 @@ export const HANDLE_PATTERN = /^[a-z0-9_]{3,20}$/;
 
 /** Single-segment paths the app may need for itself. */
 const RESERVED = new Set([
-  'admin', 'api', 'app', 'assets', 'auth', 'edit', 'help', 'home', 'login', 'logout',
+  'about', 'admin', 'api', 'app', 'assets', 'auth', 'edit', 'help', 'home', 'login', 'logout',
   'me', 'mypr', 'new', 'settings', 'signin', 'signup', 'src', 'static', 'support', 'www',
 ]);
 

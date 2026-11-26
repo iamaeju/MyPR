@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion';
-import { LogOut, MoreHorizontal, Pencil, Plus, Share2, SlidersHorizontal, UserRound } from 'lucide-react';
+import { Info, LogOut, MoreHorizontal, Pencil, Plus, Share2, SlidersHorizontal, UserRound } from 'lucide-react';
 import { Avatar } from './components/Avatar';
 import { CardDeck } from './components/CardDeck';
 import { CardFormModal } from './components/CardFormModal';
@@ -608,6 +608,7 @@ export default function App(props: AppProps) {
                 { label: '내 페이지 공유', icon: Share2, action: () => setIsShareOpen(true) },
                 { label: '프로필 편집', icon: UserRound, action: () => setIsProfileEditOpen(true) },
                 { label: '카드 관리', icon: SlidersHorizontal, action: () => setIsManageOpen(true) },
+                { label: 'MyPR 소개', icon: Info, action: () => window.location.assign('/about') },
                 ...(onSignOut ? [{ label: '로그아웃', icon: LogOut, action: onSignOut }] : []),
               ].map(({ label, icon: Icon, action }) => (
                 <button

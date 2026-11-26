@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { BrandSite } from '../brand/BrandSite';
 import { AuthScreen } from './AuthScreen';
 
 interface AuthGateProps {
@@ -50,13 +51,17 @@ export function AuthGate({ children }: AuthGateProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-[#1B1B22]">
-        <Loader2 className="w-6 h-6 text-white/70 animate-spin" aria-label="불러오는 중" />
+      <div className="min-h-[100dvh] flex items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 text-[#999999] animate-spin" aria-label="불러오는 중" />
       </div>
     );
   }
 
-  if (!session) return <AuthScreen />;
+  if (!session) {
+    // Logged-out visitors land on the brand page; /?mode=login or /?mode=signup opens the form
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    return mode === 'login' || mode === 'signup' ? <AuthScreen /> : <BrandSite />;
+  }
 
   return <>{children(session, signOut)}</>;
 }

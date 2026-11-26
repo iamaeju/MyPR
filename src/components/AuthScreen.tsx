@@ -209,6 +209,11 @@ export function AuthScreen() {
             {isSignup ? '로그인' : '회원가입'}
           </button>
         </p>
+        <p className="mt-4 text-center">
+          <a href="/about" className="text-[13px] text-[#8A8A96] underline underline-offset-4 hover:text-white">
+            MyPR 소개 보기
+          </a>
+        </p>
       </div>
     </div>
   );
